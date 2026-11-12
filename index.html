@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#1f3a8a" />
+  <title>Chấm công DMPW</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <main class="app">
+    <header class="brand">DUAL<span>i</span> · Chấm công</header>
+
+    <!-- Who-am-I state -->
+    <section id="identity" class="card hidden">
+      <p class="hello">Xin chào,</p>
+      <div class="avatar-wrap"><img id="avatar" alt="avatar" /></div>
+      <h1 id="userName" class="name"></h1>
+      <button id="btnCheckin" class="btn-checkin">Chấm công</button>
+      <button id="btnChange" class="link">Không phải bạn? Đổi người</button>
+    </section>
+
+    <!-- Unknown state -->
+    <section id="welcome" class="card hidden">
+      <div class="avatar-wrap placeholder"><span>?</span></div>
+      <h1 class="name muted">Chưa biết bạn là ai</h1>
+      <button id="btnWhoami" class="btn-checkin">Bạn là ai?</button>
+    </section>
+
+    <div id="toast" class="toast hidden"></div>
+  </main>
+
+  <!-- User picker -->
+  <div id="picker" class="overlay hidden">
+    <div class="sheet">
+      <div class="sheet-head">Bạn là ai?</div>
+      <ul id="userList" class="user-list"></ul>
+      <button id="pickerClose" class="link">Đóng</button>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
