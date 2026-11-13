@@ -6,6 +6,7 @@ const LS_KEY = "dmpw_checkin_user";
 const BRIDGE_URL = "https://dcface-bridge.onrender.com";
 
 let USERS = [];
+let selectedImg = null; // { path, el } of the highlighted thumbnail
 
 const $ = (id) => document.getElementById(id);
 
@@ -75,11 +76,13 @@ function stampFromInput() {
          pad(d.getHours()) + pad(d.getMinutes()) + pad(sec);
 }
 
-// Open the sheet to pick an image + a check-in time before firing.
+// Open the sheet to pick an image + a check-in time (does not fire yet).
 function openCheckinSheet() {
   const user = currentUser();
   if (!user) return;
   $("timeInput").value = fmtLocal(new Date());
+  selectedImg = null;
+  $("btnConfirmCheckin").disabled = true;
   const grid = $("imgGrid");
   grid.innerHTML = "";
   for (let i = 1; i <= user.count; i++) {
@@ -87,10 +90,37 @@ function openCheckinSheet() {
     const img = document.createElement("img");
     img.src = path;
     img.alt = "";
-    img.onclick = () => sendCheckin(user, path);
+    img.onclick = () => selectImg(path, img);
     grid.appendChild(img);
   }
   $("checkinSheet").classList.remove("hidden");
+}
+
+// Clicking a thumbnail only highlights it; sending needs the Xác nhận button.
+function selectImg(path, el) {
+  if (selectedImg) selectedImg.el.classList.remove("selected");
+  el.classList.add("selected");
+  selectedImg = { path: path, el: el };
+  $("btnConfirmCheckin").disabled = false;
+}
+
+// dd/MM/yyyy HH:mm from the time input, for the confirmation text.
+function readableTime() {
+  const v = $("timeInput").value;
+  if (!v) return "bây giờ";
+  const d = new Date(v);
+  return `${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFullYear()} ` +
+         `${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
+// Final confirmation: restate the chosen photo + time before sending.
+function openConfirm() {
+  const user = currentUser();
+  if (!user || !selectedImg) return;
+  $("confirmImg").src = selectedImg.path;
+  $("confirmText").innerHTML =
+    `Chấm công cho <b>${user.name}</b><br>lúc <b>${readableTime()}</b><br>với ảnh này?`;
+  $("confirmSheet").classList.remove("hidden");
 }
 
 async function sendCheckin(user, path) {
@@ -133,6 +163,14 @@ async function init() {
   $("btnChange").onclick = () => { localStorage.removeItem(LS_KEY); render(); };
   $("pickerClose").onclick = () => $("picker").classList.add("hidden");
   $("checkinClose").onclick = () => $("checkinSheet").classList.add("hidden");
+  $("btnConfirmCheckin").onclick = openConfirm;
+  $("confirmNo").onclick = () => $("confirmSheet").classList.add("hidden");
+  $("confirmYes").onclick = () => {
+    const user = currentUser();
+    const path = selectedImg && selectedImg.path;
+    $("confirmSheet").classList.add("hidden");
+    if (user && path) sendCheckin(user, path);
+  };
   render();
 }
 

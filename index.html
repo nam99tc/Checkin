@@ -48,7 +48,19 @@
       <input id="timeInput" class="time-input" type="datetime-local" />
       <div class="grid-label">Chọn 1 ảnh để gửi lên:</div>
       <div id="imgGrid" class="img-grid"></div>
+      <button id="btnConfirmCheckin" class="btn-checkin" disabled>Xác nhận</button>
       <button id="checkinClose" class="link">Huỷ</button>
+    </div>
+  </div>
+
+  <!-- Xác nhận lần cuối trước khi gửi -->
+  <div id="confirmSheet" class="overlay hidden">
+    <div class="sheet">
+      <div class="sheet-head">Xác nhận chấm công 🧐</div>
+      <div class="confirm-preview"><img id="confirmImg" alt="" /></div>
+      <p id="confirmText" class="confirm-text"></p>
+      <button id="confirmYes" class="btn-checkin">✅ Đúng, chấm công!</button>
+      <button id="confirmNo" class="link">Chọn lại</button>
     </div>
   </div>
 

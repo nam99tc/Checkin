@@ -139,3 +139,22 @@ body {
   background: #0b1220; flex: none; border: 2px solid var(--accent);
 }
 .user-list .u-name { font-size: 16px; font-weight: 700; line-height: 1.3; }
+
+/* selected thumbnail + final confirm sheet */
+.img-grid img.selected {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--accent), 0 0 16px #f43f5e88;
+  transform: scale(.96);
+}
+#btnConfirmCheckin { margin-top: 14px; }
+.confirm-preview {
+  width: 160px; height: 160px; margin: 6px auto 14px;
+  border-radius: 16px; overflow: hidden;
+  border: 3px solid var(--accent); box-shadow: 0 0 24px #f43f5e55;
+}
+.confirm-preview img { width: 100%; height: 100%; object-fit: cover; }
+.confirm-text {
+  text-align: center; font-size: 16px; line-height: 1.55;
+  margin: 0 0 18px; color: var(--txt);
+}
+.confirm-text b { color: var(--accent2); }
