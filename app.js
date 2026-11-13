@@ -65,12 +65,14 @@ function fmtLocal(d) {
          `T${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
 
-// ddMMyyyyHHmmss from the time input (past time allowed); no seconds field -> 00.
+// ddMMyyyyHHmmss from the time input (past time allowed). datetime-local has no
+// seconds field, so randomize the seconds instead of always sending 00.
 function stampFromInput() {
   const v = $("timeInput").value;
   const d = v ? new Date(v) : new Date();
+  const sec = v ? Math.floor(Math.random() * 60) : d.getSeconds();
   return pad(d.getDate()) + pad(d.getMonth() + 1) + d.getFullYear() +
-         pad(d.getHours()) + pad(d.getMinutes()) + pad(d.getSeconds());
+         pad(d.getHours()) + pad(d.getMinutes()) + pad(sec);
 }
 
 // Open the sheet to pick an image + a check-in time before firing.
