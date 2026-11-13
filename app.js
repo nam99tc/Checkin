@@ -115,16 +115,24 @@ async function sendCheckin(user, path) {
     //    the server creates it before the webhook photo arrives to attach.
     if (BRIDGE_URL) {
       try {
-        await fetch(BRIDGE_URL + "/fire-event", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            cardId: user.cardId, userName: user.name, accessTime: stamp, score: score,
-          }),
-        });
-        await sleep(2000);
+        // Timeout so a dead/hung bridge can never block the webhook below.
+        const ctrl = new AbortController();
+        const t = setTimeout(() => ctrl.abort(), 15000);
+        try {
+          await fetch(BRIDGE_URL + "/fire-event", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              cardId: user.cardId, userName: user.name, accessTime: stamp, score: score,
+            }),
+            signal: ctrl.signal,
+          });
+          await sleep(2000);
+        } finally {
+          clearTimeout(t);
+        }
       } catch (e) {
-        console.warn("bridge fire-event failed, falling back to webhook only:", e);
+        console.warn("bridge fire-event failed/timed out, webhook only:", e);
       }
     }
 
