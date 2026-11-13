@@ -8,20 +8,8 @@ const $ = (id) => document.getElementById(id);
 
 function pad(n) { return String(n).padStart(2, "0"); }
 
-// ddMMyyyyHHmmss in local (device) time — matches webhook DdMMyyyyHHmmss parser.
-function nowStamp() {
-  const d = new Date();
-  return pad(d.getDate()) + pad(d.getMonth() + 1) + d.getFullYear() +
-         pad(d.getHours()) + pad(d.getMinutes()) + pad(d.getSeconds());
-}
-
 function imgPath(user, idx) {
   return `images/${user.key}/${pad(idx)}.jpg`;
-}
-
-function randomImage(user) {
-  const n = Math.floor(Math.random() * user.count) + 1; // 1..count
-  return imgPath(user, n);
 }
 
 function currentUser() {
@@ -68,21 +56,50 @@ function openPicker() {
   $("picker").classList.remove("hidden");
 }
 
-async function checkIn() {
+// datetime-local value (YYYY-MM-DDTHH:mm) from a Date in device-local time.
+function fmtLocal(d) {
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}` +
+         `T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
+// ddMMyyyyHHmmss from the time input (past time allowed); no seconds field -> 00.
+function stampFromInput() {
+  const v = $("timeInput").value;
+  const d = v ? new Date(v) : new Date();
+  return pad(d.getDate()) + pad(d.getMonth() + 1) + d.getFullYear() +
+         pad(d.getHours()) + pad(d.getMinutes()) + pad(d.getSeconds());
+}
+
+// Open the sheet to pick an image + a check-in time before firing.
+function openCheckinSheet() {
   const user = currentUser();
   if (!user) return;
-  const btn = $("btnCheckin");
-  btn.disabled = true;
-  btn.textContent = "Đang chấm công…";
+  $("timeInput").value = fmtLocal(new Date());
+  const grid = $("imgGrid");
+  grid.innerHTML = "";
+  for (let i = 1; i <= user.count; i++) {
+    const path = imgPath(user, i);
+    const img = document.createElement("img");
+    img.src = path;
+    img.alt = "";
+    img.onclick = () => sendCheckin(user, path);
+    grid.appendChild(img);
+  }
+  $("checkinSheet").classList.remove("hidden");
+}
+
+async function sendCheckin(user, path) {
+  const stamp = stampFromInput();
+  const whenLabel = $("timeInput").value;
+  $("checkinSheet").classList.add("hidden");
   try {
-    const path = randomImage(user);
     const blob = await fetch(path).then((r) => {
       if (!r.ok) throw new Error("Không tải được ảnh checkin");
       return r.blob();
     });
     // {cameraId}-{cardId}-{ddMMyyyyHHmmss}-{similarity}-2.jpg
     const fileName =
-      `${user.cameraId}-${user.cardId}-${nowStamp()}-${user.similarity}-2.jpg`;
+      `${user.cameraId}-${user.cardId}-${stamp}-${user.similarity}-2.jpg`;
     const fd = new FormData();
     fd.append("faceImage", blob, fileName);
 
@@ -91,21 +108,19 @@ async function checkIn() {
     await fetch(WEBHOOK_URL, { method: "POST", body: fd, mode: "no-cors" });
 
     $("avatar").src = path;
-    toast("✓ Đã gửi chấm công lúc " + new Date().toLocaleTimeString("vi-VN"), "ok");
+    toast("✓ Đã gửi chấm công lúc " + (whenLabel || "bây giờ"), "ok");
   } catch (e) {
     toast("✗ " + e.message, "err");
-  } finally {
-    btn.disabled = false;
-    btn.textContent = "Chấm công";
   }
 }
 
 async function init() {
   USERS = await fetch("users.json").then((r) => r.json());
-  $("btnCheckin").onclick = checkIn;
+  $("btnCheckin").onclick = openCheckinSheet;
   $("btnWhoami").onclick = openPicker;
   $("btnChange").onclick = () => { localStorage.removeItem(LS_KEY); render(); };
   $("pickerClose").onclick = () => $("picker").classList.add("hidden");
+  $("checkinClose").onclick = () => $("checkinSheet").classList.add("hidden");
   render();
 }
 

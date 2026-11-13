@@ -3,39 +3,52 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <meta name="theme-color" content="#1f3a8a" />
-  <title>Chấm công DMPW</title>
+  <meta name="theme-color" content="#0b0b0f" />
+  <title>Chấm Công Nổi Loạn</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
+  <div class="bg"></div>
   <main class="app">
-    <header class="brand">DUAL<span>i</span> · Chấm công</header>
+    <header class="brand">⚡ CHẤM CÔNG NỔI LOẠN</header>
 
-    <!-- Who-am-I state -->
+    <!-- Đã biết là ai -->
     <section id="identity" class="card hidden">
-      <p class="hello">Xin chào,</p>
+      <p class="hello">Chiến thần điểm danh 🕶️</p>
       <div class="avatar-wrap"><img id="avatar" alt="avatar" /></div>
       <h1 id="userName" class="name"></h1>
-      <button id="btnCheckin" class="btn-checkin">Chấm công</button>
-      <button id="btnChange" class="link">Không phải bạn? Đổi người</button>
+      <button id="btnCheckin" class="btn-checkin">🔥 QUẤT PHÁT CHẤM CÔNG</button>
+      <button id="btnChange" class="link">Không phải tui, đổi người 🫥</button>
     </section>
 
-    <!-- Unknown state -->
+    <!-- Chưa biết là ai -->
     <section id="welcome" class="card hidden">
       <div class="avatar-wrap placeholder"><span>?</span></div>
-      <h1 class="name muted">Chưa biết bạn là ai</h1>
-      <button id="btnWhoami" class="btn-checkin">Bạn là ai?</button>
+      <h1 class="name muted">Khai báo danh tính đi đồng chí</h1>
+      <button id="btnWhoami" class="btn-checkin">Bạn là ai trong băng này?</button>
     </section>
 
     <div id="toast" class="toast hidden"></div>
   </main>
 
-  <!-- User picker -->
+  <!-- Chọn người -->
   <div id="picker" class="overlay hidden">
     <div class="sheet">
-      <div class="sheet-head">Bạn là ai?</div>
+      <div class="sheet-head">Bạn là ai trong băng này? 🕶️</div>
       <ul id="userList" class="user-list"></ul>
       <button id="pickerClose" class="link">Đóng</button>
+    </div>
+  </div>
+
+  <!-- Chọn ảnh + giờ để chấm công -->
+  <div id="checkinSheet" class="overlay hidden">
+    <div class="sheet">
+      <div class="sheet-head">Chọn ảnh & giờ để quất 🔥</div>
+      <label class="field-label">Giờ chấm công (để mặc định = bây giờ, đổi được về quá khứ)</label>
+      <input id="timeInput" class="time-input" type="datetime-local" />
+      <div class="grid-label">Chọn 1 ảnh để gửi lên:</div>
+      <div id="imgGrid" class="img-grid"></div>
+      <button id="checkinClose" class="link">Huỷ</button>
     </div>
   </div>
 

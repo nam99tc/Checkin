@@ -5,6 +5,54 @@
     "cardId": "DC_7443",
     "cameraId": "45010001491119001",
     "similarity": "0950",
-    "count": 15
+    "count": 100
+  },
+  {
+    "key": "thi",
+    "name": "Khanh Thi",
+    "cardId": "DC_845",
+    "cameraId": "45010001491119001",
+    "similarity": "0950",
+    "count": 100
+  },
+  {
+    "key": "luat",
+    "name": "Nguyen Duc Luat",
+    "cardId": "DC_4034",
+    "cameraId": "45010001491119001",
+    "similarity": "0950",
+    "count": 100
+  },
+  {
+    "key": "ngoc",
+    "name": "Ngoc Bich Nguyen",
+    "cardId": "DC_15962",
+    "cameraId": "45010001491119001",
+    "similarity": "0950",
+    "count": 100
+  },
+  {
+    "key": "hiep",
+    "name": "Lai The Hiep",
+    "cardId": "DC_583",
+    "cameraId": "45010001491119001",
+    "similarity": "0950",
+    "count": 100
+  },
+  {
+    "key": "hoang",
+    "name": "Hoang",
+    "cardId": "DC_14805",
+    "cameraId": "45010001491119001",
+    "similarity": "0950",
+    "count": 100
+  },
+  {
+    "key": "muoi",
+    "name": "Muoi",
+    "cardId": "DC_3718",
+    "cameraId": "45010001491119001",
+    "similarity": "0950",
+    "count": 100
   }
 ]
