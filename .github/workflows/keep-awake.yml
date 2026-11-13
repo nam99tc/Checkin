@@ -1,0 +1,14 @@
+name: keep-bridge-awake
+
+# Ping the Render free bridge so it doesn't spin down after 15 min idle.
+on:
+  schedule:
+    - cron: "*/10 * * * *"   # every 10 minutes (GitHub cron is best-effort)
+  workflow_dispatch:          # allow manual run
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping bridge /health
+        run: curl -fsS --max-time 70 https://dcface-bridge.onrender.com/health || true
