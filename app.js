@@ -82,7 +82,6 @@ function openCheckinSheet() {
   if (!user) return;
   $("timeInput").value = fmtLocal(new Date());
   selectedImg = null;
-  $("btnConfirmCheckin").disabled = true;
   const grid = $("imgGrid");
   grid.innerHTML = "";
   for (let i = 1; i <= user.count; i++) {
@@ -101,7 +100,7 @@ function selectImg(path, el) {
   if (selectedImg) selectedImg.el.classList.remove("selected");
   el.classList.add("selected");
   selectedImg = { path: path, el: el };
-  $("btnConfirmCheckin").disabled = false;
+  openConfirm();
 }
 
 // dd/MM/yyyy HH:mm from the time input, for the confirmation text.
@@ -163,7 +162,6 @@ async function init() {
   $("btnChange").onclick = () => { localStorage.removeItem(LS_KEY); render(); };
   $("pickerClose").onclick = () => $("picker").classList.add("hidden");
   $("checkinClose").onclick = () => $("checkinSheet").classList.add("hidden");
-  $("btnConfirmCheckin").onclick = openConfirm;
   $("confirmNo").onclick = () => $("confirmSheet").classList.add("hidden");
   $("confirmYes").onclick = () => {
     const user = currentUser();

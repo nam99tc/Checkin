@@ -142,11 +142,9 @@ body {
 
 /* selected thumbnail + final confirm sheet */
 .img-grid img.selected {
-  border-color: var(--accent);
-  box-shadow: 0 0 0 2px var(--accent), 0 0 16px #f43f5e88;
-  transform: scale(.96);
+  border-color: var(--ok);
+  box-shadow: 0 0 0 3px var(--ok), 0 0 16px #22c55eaa;
 }
-#btnConfirmCheckin { margin-top: 14px; }
 .confirm-preview {
   width: 160px; height: 160px; margin: 6px auto 14px;
   border-radius: 16px; overflow: hidden;
