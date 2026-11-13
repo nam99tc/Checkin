@@ -2,6 +2,11 @@
 const WEBHOOK_URL = "https://api.duallmaster.com/cameras/webhook-ts-camera";
 const LS_KEY = "dmpw_checkin_user";
 
+// Optional HTTP->MQTT bridge (Render). When set, each check-in first publishes a
+// full "Face ID" device event, then fires the webhook photo ~2s later so the
+// webhook attaches the image to that event. Empty => webhook only (as before).
+const BRIDGE_URL = "";
+
 let USERS = [];
 
 const $ = (id) => document.getElementById(id);
@@ -88,18 +93,45 @@ function openCheckinSheet() {
   $("checkinSheet").classList.remove("hidden");
 }
 
+function sleep(ms) { return new Promise((r) => setTimeout(r, ms)); }
+
+// SearchScore / similarity in [0.80, 0.95] (don't hardcode). 0.87 -> "0870";
+// the webhook re-derives SearchScore from this, so both steps use one value.
+function randomScore() { return Math.round((0.80 + Math.random() * 0.15) * 1000) / 1000; }
+function scoreToSimilarity(score) { return String(Math.round(score * 1000)).padStart(4, "0"); }
+
 async function sendCheckin(user, path) {
   const stamp = stampFromInput();
   const whenLabel = $("timeInput").value;
+  const score = randomScore();
   $("checkinSheet").classList.add("hidden");
   try {
     const blob = await fetch(path).then((r) => {
       if (!r.ok) throw new Error("Không tải được ảnh checkin");
       return r.blob();
     });
+
+    // 1. Publish the full "Face ID" device event via the bridge, then wait so
+    //    the server creates it before the webhook photo arrives to attach.
+    if (BRIDGE_URL) {
+      try {
+        await fetch(BRIDGE_URL + "/fire-event", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            cardId: user.cardId, userName: user.name, accessTime: stamp, score: score,
+          }),
+        });
+        await sleep(2000);
+      } catch (e) {
+        console.warn("bridge fire-event failed, falling back to webhook only:", e);
+      }
+    }
+
+    // 2. Fire the webhook photo with the same AccessTime + score.
     // {cameraId}-{cardId}-{ddMMyyyyHHmmss}-{similarity}-2.jpg
     const fileName =
-      `${user.cameraId}-${user.cardId}-${stamp}-${user.similarity}-2.jpg`;
+      `${user.cameraId}-${user.cardId}-${stamp}-${scoreToSimilarity(score)}-2.jpg`;
     const fd = new FormData();
     fd.append("faceImage", blob, fileName);
 
