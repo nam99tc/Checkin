@@ -5,7 +5,7 @@ const LS_KEY = "dmpw_checkin_user";
 // Optional HTTP->MQTT bridge (Render). When set, each check-in first publishes a
 // full "Face ID" device event, then fires the webhook photo ~2s later so the
 // webhook attaches the image to that event. Empty => webhook only (as before).
-const BRIDGE_URL = "";
+const BRIDGE_URL = "https://dcface-bridge.onrender.com";
 
 let USERS = [];
 
