@@ -1,0 +1,18 @@
+services:
+  - type: web
+    name: dcface-bridge
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn bridge:app --bind 0.0.0.0:$PORT
+    envVars:
+      - key: RMQ_HOST
+        value: mq.demasterpro.com
+      - key: RMQ_PORT
+        value: "5672"
+      - key: RMQ_VHOST
+        value: "/"
+      - key: RMQ_USER
+        value: icuclient
+      - key: RMQ_PASS
+        sync: false   # enter in the Render dashboard (not committed)
