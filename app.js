@@ -1,10 +1,8 @@
-// DMPW check-in web — fires one TS-camera webhook event for the selected user.
-const WEBHOOK_URL = "https://api.duallmaster.com/cameras/webhook-ts-camera";
+// DMPW check-in web — fires one full "Face ID" event per check-in via the bridge.
 const LS_KEY = "dmpw_checkin_user";
 
-// Optional HTTP->MQTT bridge (Render). When set, each check-in first publishes a
-// full "Face ID" device event, then fires the webhook photo ~2s later so the
-// webhook attaches the image to that event. Empty => webhook only (as before).
+// HTTP->MQTT bridge (Render). It publishes the full "Face ID" device event, then
+// attaches the chosen photo via /event-logs/{device}/images. Required to check in.
 const BRIDGE_URL = "https://dcface-bridge.onrender.com";
 
 let USERS = [];
@@ -93,60 +91,32 @@ function openCheckinSheet() {
   $("checkinSheet").classList.remove("hidden");
 }
 
-function sleep(ms) { return new Promise((r) => setTimeout(r, ms)); }
-
-// SearchScore / similarity in [0.80, 0.95] (don't hardcode). 0.87 -> "0870";
-// the webhook re-derives SearchScore from this, so both steps use one value.
-function randomScore() { return Math.round((0.80 + Math.random() * 0.15) * 1000) / 1000; }
-function scoreToSimilarity(score) { return String(Math.round(score * 1000)).padStart(4, "0"); }
-
 async function sendCheckin(user, path) {
   const stamp = stampFromInput();
   const whenLabel = $("timeInput").value;
-  const score = randomScore();
+  const imageUrl = new URL(path, location.href).href; // absolute URL the server can fetch
   $("checkinSheet").classList.add("hidden");
+  if (!BRIDGE_URL) {
+    toast("✗ Chưa cấu hình bridge", "err");
+    return;
+  }
   try {
-    const blob = await fetch(path).then((r) => {
-      if (!r.ok) throw new Error("Không tải được ảnh checkin");
-      return r.blob();
-    });
-
-    // 1. Publish the full "Face ID" device event via the bridge, then wait so
-    //    the server creates it before the webhook photo arrives to attach.
-    if (BRIDGE_URL) {
-      try {
-        // Timeout so a dead/hung bridge can never block the webhook below.
-        const ctrl = new AbortController();
-        const t = setTimeout(() => ctrl.abort(), 15000);
-        try {
-          await fetch(BRIDGE_URL + "/fire-event", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              cardId: user.cardId, userName: user.name, accessTime: stamp, score: score,
-            }),
-            signal: ctrl.signal,
-          });
-          await sleep(2000);
-        } finally {
-          clearTimeout(t);
-        }
-      } catch (e) {
-        console.warn("bridge fire-event failed/timed out, webhook only:", e);
-      }
+    // The bridge publishes the full "Face ID" event, then attaches this photo
+    // via /event-logs/{device}/images (no ts-webhook -> no server crash).
+    const ctrl = new AbortController();
+    const t = setTimeout(() => ctrl.abort(), 20000);
+    try {
+      await fetch(BRIDGE_URL + "/fire-event", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          cardId: user.cardId, userName: user.name, accessTime: stamp, imageUrl: imageUrl,
+        }),
+        signal: ctrl.signal,
+      });
+    } finally {
+      clearTimeout(t);
     }
-
-    // 2. Fire the webhook photo with the same AccessTime + score.
-    // {cameraId}-{cardId}-{ddMMyyyyHHmmss}-{similarity}-2.jpg
-    const fileName =
-      `${user.cameraId}-${user.cardId}-${stamp}-${scoreToSimilarity(score)}-2.jpg`;
-    const fd = new FormData();
-    fd.append("faceImage", blob, fileName);
-
-    // multipart POST is a CORS-safelisted request: it reaches the server even
-    // though no-cors makes the response opaque (we can't read the status).
-    await fetch(WEBHOOK_URL, { method: "POST", body: fd, mode: "no-cors" });
-
     $("avatar").src = path;
     toast("✓ Đã gửi chấm công lúc " + (whenLabel || "bây giờ"), "ok");
   } catch (e) {
