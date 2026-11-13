@@ -22,6 +22,7 @@ import base64
 import hashlib
 import json
 import os
+import threading
 import time
 import urllib.error
 import urllib.request
@@ -33,7 +34,7 @@ from flask import Flask, request, jsonify, make_response
 EXCHANGE = "amq.topic"
 DEFAULT_DEVICE_ADDRESS = "840106"
 DMPW_API = "https://api.duallmaster.com"
-UPLOAD_DELAY = float(os.environ.get("UPLOAD_DELAY", "2.0"))  # let the event be created first
+UPLOAD_DELAY = float(os.environ.get("UPLOAD_DELAY", "10.0"))  # let the event be created first
 
 RMQ_HOST = os.environ.get("RMQ_HOST", "mq.demasterpro.com")
 RMQ_PORT = int(os.environ.get("RMQ_PORT", "5672"))
@@ -147,19 +148,27 @@ def fire_event():
     except Exception as e:
         return jsonify(ok=False, step="mqtt", error=str(e)), 502
 
-    # 2. attach the photo (best-effort; the event already exists without it)
-    upload = None
+    # 2. attach the photo in a background thread so the caller returns fast. The
+    #    event must exist before the upload (the temp-file reverse-attach only
+    #    runs for Android terminals, not this DC camera), so wait UPLOAD_DELAY.
     if image_url:
-        try:
-            time.sleep(UPLOAD_DELAY)
-            img_b64 = download_base64(image_url)
-            status, text = upload_image(device_address, card_id, access_time, img_b64)
-            upload = {"status": status, "body": text}
-        except Exception as e:
-            upload = {"error": str(e)}
+        threading.Thread(
+            target=_attach_photo_later,
+            args=(device_address, card_id, access_time, image_url),
+            daemon=True).start()
 
     return jsonify(ok=True, routingKey=f".topic.event.{device_address}",
-                   accessTime=access_time, upload=upload)
+                   accessTime=access_time, queuedUpload=bool(image_url))
+
+
+def _attach_photo_later(device_address, card_id, access_time, image_url):
+    try:
+        time.sleep(UPLOAD_DELAY)
+        img_b64 = download_base64(image_url)
+        status, text = upload_image(device_address, card_id, access_time, img_b64)
+        print(f"[attach] {card_id} {access_time} -> {status} {text}", flush=True)
+    except Exception as e:
+        print(f"[attach] FAILED {card_id} {access_time}: {e}", flush=True)
 
 
 @app.route("/health")
